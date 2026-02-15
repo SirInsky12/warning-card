@@ -1,4 +1,5 @@
 # warning-card
+<img width="271" height="173" alt="image" src="https://github.com/user-attachments/assets/e2ec1d4c-2df2-4802-8bf4-1e8ac921dee6" />
 
 `warning-card` ist eine Home Assistant Lovelace Custom Card als Web Component.
 Sie zeigt nur dann etwas an, wenn mindestens eine Regel aktiv ist.
