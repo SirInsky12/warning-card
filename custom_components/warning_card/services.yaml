@@ -1,0 +1,16 @@
+check_resolved:
+  name: Check resolved
+  description: Prueft den Zustand einer Entity und erstellt eine Meldung.
+  fields:
+    entity_id:
+      name: Entity
+      description: Die zu pruefende Entity.
+      required: true
+      selector:
+        entity: {}
+    rule_id:
+      name: Rule ID
+      description: Optionaler Rule-Identifier fuer die Meldung.
+      required: false
+      selector:
+        text: {}
