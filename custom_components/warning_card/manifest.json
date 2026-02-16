@@ -1,8 +1,8 @@
 {
   "domain": "warning_card",
   "name": "Warning Card Backend",
-  "version": "0.1.0",
-  "documentation": "https://github.com/your-org/warning-card",
-  "issue_tracker": "https://github.com/your-org/warning-card/issues",
+  "version": "0.2.2",
+  "documentation": "https://github.com/SirInsky12/warning-card",
+  "issue_tracker": "https://github.com/SirInsky12/warning-card/issues",
   "codeowners": []
 }
