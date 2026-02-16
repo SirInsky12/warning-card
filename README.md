@@ -1,5 +1,4 @@
 # warning-card
-<img width="271" height="173" alt="image" src="https://github.com/user-attachments/assets/e2ec1d4c-2df2-4802-8bf4-1e8ac921dee6" />
 
 `warning-card` ist eine Home Assistant Lovelace Custom Card als Web Component.
 Sie zeigt nur dann etwas an, wenn mindestens eine Regel aktiv ist.
@@ -9,7 +8,9 @@ Sie zeigt nur dann etwas an, wenn mindestens eine Regel aktiv ist.
 - Mehrere Regeln mit mehreren Entities pro Regel
 - Regeltypen: `numeric_below`, `numeric_above`, `state_is`, `state_in`, `template`
 - Gruppierung nach Severity: `critical`, `warning`, `info`
-- Action-Buttons pro aktivem Eintrag`r`n- Wertanzeige inkl. `unit_of_measurement` (UOM), falls vorhanden`r`n- In der Karte wird der Name angezeigt (ohne Entity-ID/Pfad)
+- Action-Buttons pro aktivem Eintrag
+- Wertanzeige inkl. `unit_of_measurement` (UOM), falls vorhanden
+- In der Karte wird der Name angezeigt (ohne Entity-ID/Pfad)
 - Optionales Modal beim Klick
 - Optionales Auto-Modal bei neuem Trigger
 - Visual Editor ueber den offiziellen Home Assistant Form-Editor
@@ -20,7 +21,16 @@ Sie zeigt nur dann etwas an, wenn mindestens eine Regel aktiv ist.
 - Zugriff auf `/config/www` fuer die Card-Datei
 - Optional: Zugriff auf `/config/custom_components` fuer den Backend-Service
 
-## Installation (Frontend)
+## Installation mit HACS (empfohlen)
+
+1. In HACS das Repository als Typ **Dashboard** hinzufuegen
+2. Installation in HACS starten
+3. Falls die Ressource nicht automatisch angelegt wird, manuell eintragen:
+   - URL: `/hacsfiles/warning-card/warning-card.js`
+   - Typ: `JavaScript Module`
+4. Home Assistant / Browser neu laden
+
+## Installation (Frontend, manuell)
 
 1. `warning-card.js` nach `/config/www/warning-card.js` kopieren
 2. In Home Assistant unter **Einstellungen -> Dashboards -> Ressourcen** eintragen:
@@ -60,7 +70,6 @@ rules:
     type: numeric_below
     threshold: 1
     severity: critical
-    message: "{{entity}} ist bei {{value}}"
 ```
 
 ## Regeltypen
@@ -71,11 +80,6 @@ rules:
 - `state_in`: aktiv, wenn `state` in `rule.states`
 - `template`: JavaScript-Expression (defensiv eingeschraenkt)
 
-Hinweise:
-
-- `unknown`/`unavailable` werden bei numeric/state-Regeln ignoriert
-- Eine Regel mit mehreren passenden Entities erzeugt mehrere aktive Zeilen
-
 ## Optionen
 
 - `open_modal_on_tap` (Default: `true`): Klick auf Eintrag oeffnet Modal
@@ -84,8 +88,7 @@ Hinweise:
 ## Actions
 
 Jede Action ruft einen Service auf und sendet zusaetzlich `entity_id` und `rule_id`.
-
-Im Visual Editor erfolgt die Zuordnung ueber `script_mappings` (rule_id -> script_entity).
+Im Visual Editor erfolgt die Zuordnung ueber `script_mappings` (`rule_id -> script_entity`).
 
 ## Visual Editor
 
@@ -95,10 +98,6 @@ Im Regel-Editor gibt es bei der Entitaeten-Auswahl einen Hilfetext zur Orientier
 ## Troubleshooting
 
 - Visual Editor nicht verfuegbar: Browser-Cache leeren und Ressource neu laden
-<<<<<<< HEAD
-- Alte Version wird geladen: URL mit Cache-Buster nutzen, z. B. `/local/warning-card.js?v=5`
-=======
-- Alte Version wird geladen: URL mit Cache-Buster nutzen, z. B. `/local/warning-card.js?v=11`
->>>>>>> eca005c (Release v0.2.0: rule-script mappings in main editor)
+- Alte Version wird geladen: URL mit Cache-Buster nutzen, z. B. `/local/warning-card.js?v=13`
 - Actions reagieren nicht: pruefen, ob der Service existiert und Berechtigungen passen
-
+- HACS installiert, aber keine Ressource: Repository-Typ muss **Dashboard** sein
