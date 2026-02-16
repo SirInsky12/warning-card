@@ -274,16 +274,25 @@
         }
         ha-icon {
           color: var(--warning-color);
-          width: 22px;
-          height: 22px;
+          width: 28px;
+          height: 28px;
           margin-top: 2px;
         }
         .line {
           min-width: 0;
         }
+        .name-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
         .name {
           font-weight: 600;
           margin: 0;
+        }
+        .value-inline {
+          flex-shrink: 0;
         }
         .entity {
           margin: 2px 0 0;
@@ -488,11 +497,12 @@
     const line = document.createElement("div");
     line.className = "line";
     line.innerHTML = `
-      <p class="name">${this._escapeHtml(entry.name)}</p>
+      <div class="name-row">
+        <p class="name">${this._escapeHtml(entry.name)}</p>
+        <span class="value value-inline">${this._escapeHtml(entry.valueLabel)}</span>
+      </div>
       <p class="entity">${this._escapeHtml(entry.entityLabel)}</p>
-      ${entry.message ? `<p class="message">${this._escapeHtml(entry.message)}</p>` : ""}
       <div class="meta">
-        <span class="value">${this._escapeHtml(entry.valueLabel)}</span>
         <span class="badge badge-${this._escapeHtml(entry.severity)}">${this._escapeHtml(this._severityLabel(entry.severity))}</span>
       </div>
     `;
@@ -633,7 +643,6 @@
         <button type="button" class="close-btn">Schliessen</button>
       </div>
       <p class="entity">${this._escapeHtml(entry.entityLabel)}</p>
-      ${entry.message ? `<p class="message">${this._escapeHtml(entry.message)}</p>` : ""}
       <div class="meta">
         <span class="value">${this._escapeHtml(entry.valueLabel)}</span>
         <span class="badge badge-${this._escapeHtml(entry.severity)}">${this._escapeHtml(this._severityLabel(entry.severity))}</span>
@@ -706,9 +715,9 @@
         }
 
         const entityLabel = entityId
-          ? `${stateObj?.attributes?.friendly_name || entityId} (${entityId})`
+          ? this._entityDisplayName(entityId, stateObj)
           : "Template-Regel";
-        const valueLabel = stateObj ? `${stateObj.state}` : "aktiv";
+        const valueLabel = stateObj ? this._formatStateValue(stateObj) : "aktiv";
         const message = this._renderMessage(rule.message, entityId, valueLabel);
 
         entries.push({
@@ -764,7 +773,14 @@
   }
 
   _extractRuleActions(rule, existingActions) {
-    const merged = Array.isArray(existingActions) ? [...existingActions] : [];
+    const merged = Array.isArray(existingActions)
+      ? existingActions.filter(
+          (action) =>
+            action &&
+            typeof action.service === "string" &&
+            action.service.includes(".")
+        )
+      : [];
     const mapped = this._getScriptMappingForRule(rule.id);
 
     let service = "";
@@ -781,11 +797,6 @@
     ) {
       service = mapped.script_entity;
     } else if (
-      typeof this._config?.script_entity === "string" &&
-      this._config.script_entity.startsWith("script.")
-    ) {
-      service = this._config.script_entity;
-    } else if (
       typeof rule.script_entity === "string" &&
       rule.script_entity.startsWith("script.")
     ) {
@@ -799,9 +810,6 @@
             ? rule.action_name
             : typeof mapped?.action_name === "string" && mapped.action_name.trim()
             ? mapped.action_name
-            : typeof this._config?.script_action_name === "string" &&
-              this._config.script_action_name.trim()
-            ? this._config.script_action_name
             : typeof rule.script_action_name === "string" && rule.script_action_name.trim()
             ? rule.script_action_name
             : "Bitte beheben",
@@ -815,8 +823,6 @@
             ? rule.action_confirm_text
             : typeof mapped?.confirm_text === "string"
             ? mapped.confirm_text
-            : typeof this._config?.script_confirm_text === "string"
-            ? this._config.script_confirm_text
             : typeof rule.script_confirm_text === "string"
             ? rule.script_confirm_text
             : undefined,
@@ -909,6 +915,27 @@
     return message
       .replaceAll("{{entity}}", entityId || "")
       .replaceAll("{{value}}", value || "");
+  }
+
+  _formatStateValue(stateObj) {
+    if (!stateObj) {
+      return "";
+    }
+    const state = String(stateObj.state ?? "");
+    const unit =
+      typeof stateObj.attributes?.unit_of_measurement === "string"
+        ? stateObj.attributes.unit_of_measurement.trim()
+        : "";
+    return unit ? `${state} ${unit}` : state;
+  }
+
+  _entityDisplayName(entityId, stateObj) {
+    const friendly = stateObj?.attributes?.friendly_name;
+    if (typeof friendly === "string" && friendly.trim()) {
+      return friendly.trim();
+    }
+    const objectId = String(entityId || "").split(".")[1] || String(entityId || "");
+    return objectId.replaceAll("_", " ").trim();
   }
 
   _normalizeSeverity(severity) {

@@ -1,4 +1,4 @@
-﻿# warning-card
+# warning-card
 <img width="271" height="173" alt="image" src="https://github.com/user-attachments/assets/e2ec1d4c-2df2-4802-8bf4-1e8ac921dee6" />
 
 `warning-card` ist eine Home Assistant Lovelace Custom Card als Web Component.
@@ -9,7 +9,7 @@ Sie zeigt nur dann etwas an, wenn mindestens eine Regel aktiv ist.
 - Mehrere Regeln mit mehreren Entities pro Regel
 - Regeltypen: `numeric_below`, `numeric_above`, `state_is`, `state_in`, `template`
 - Gruppierung nach Severity: `critical`, `warning`, `info`
-- Action-Buttons pro aktivem Eintrag
+- Action-Buttons pro aktivem Eintrag`r`n- Wertanzeige inkl. `unit_of_measurement` (UOM), falls vorhanden`r`n- In der Karte wird der Name angezeigt (ohne Entity-ID/Pfad)
 - Optionales Modal beim Klick
 - Optionales Auto-Modal bei neuem Trigger
 - Visual Editor ueber den offiziellen Home Assistant Form-Editor
