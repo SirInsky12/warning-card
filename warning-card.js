@@ -18,8 +18,15 @@
           ? safeConfig.title
           : "Warnungen",
       rules: Array.isArray(safeConfig.rules) ? safeConfig.rules : [],
+      script_mappings: Array.isArray(safeConfig.script_mappings) ? safeConfig.script_mappings : [],
       open_modal_on_tap: safeConfig.open_modal_on_tap !== false,
       auto_open_on_trigger: safeConfig.auto_open_on_trigger === true,
+      script_entity:
+        typeof safeConfig.script_entity === "string" ? safeConfig.script_entity : "",
+      script_action_name:
+        typeof safeConfig.script_action_name === "string" ? safeConfig.script_action_name : "",
+      script_confirm_text:
+        typeof safeConfig.script_confirm_text === "string" ? safeConfig.script_confirm_text : "",
     };
     this._previousEntryKeys = new Set();
     this._hasRenderedOnce = false;
@@ -70,6 +77,8 @@
                   },
                 },
                 entities: {
+                  description:
+                    "Waehle hier eine oder mehrere Entities fuer diese Regel aus. Jede passende Entity erscheint als eigener Eintrag in der Karte.",
                   selector: {
                     entity: {
                       multiple: true,
@@ -99,21 +108,33 @@
                   },
                 },
                 message: { selector: { text: {} } },
-                actions: {
+              },
+            },
+          },
+        },
+        {
+          name: "script_mappings",
+          description: "Regel zu Script zuordnen: jede rule_id kann ein eigenes Script erhalten.",
+          selector: {
+            object: {
+              multiple: true,
+              label_field: "rule_id",
+              description_field: "script_entity",
+              fields: {
+                rule_id: {
+                  required: true,
+                  selector: { text: {} },
+                },
+                script_entity: {
+                  required: true,
                   selector: {
-                    object: {
-                      multiple: true,
-                      label_field: "name",
-                      description_field: "service",
-                      fields: {
-                        name: { selector: { text: {} }, required: true },
-                        icon: { selector: { icon: {} } },
-                        service: { selector: { text: {} }, required: true },
-                        confirm_text: { selector: { text: {} } },
-                      },
+                    entity: {
+                      domain: "script",
                     },
                   },
                 },
+                action_name: { selector: { text: {} } },
+                confirm_text: { selector: { text: {} } },
               },
             },
           },
@@ -123,12 +144,16 @@
         if (schema.name === "title") return "Titel";
         if (schema.name === "open_modal_on_tap") return "Modal bei Klick";
         if (schema.name === "auto_open_on_trigger") return "Modal automatisch bei Trigger";
-        if (schema.name === "rules") return "Regeln";
+        if (schema.name === "rules") return "Regeln Auswahl";
+        if (schema.name === "script_mappings") return "Regel-Script Zuordnung";
         return undefined;
       },
       assertConfig: (config) => {
         if (config?.rules && !Array.isArray(config.rules)) {
           throw new Error("'rules' muss eine Liste sein.");
+        }
+        if (config?.script_mappings && !Array.isArray(config.script_mappings)) {
+          throw new Error("'script_mappings' muss eine Liste sein.");
         }
       },
     };
@@ -140,6 +165,17 @@
       title: "Warnungen",
       open_modal_on_tap: true,
       auto_open_on_trigger: true,
+      script_entity: "script.warntafel_behoben_pruefen",
+      script_action_name: "Bitte beheben",
+      script_confirm_text: "Wirklich behoben? Ich pruefe nach.",
+      script_mappings: [
+        {
+          rule_id: "batt_low",
+          script_entity: "script.warntafel_behoben_pruefen",
+          action_name: "Bitte beheben",
+          confirm_text: "Wirklich behoben? Ich pruefe nach.",
+        },
+      ],
       rules: [
         {
           id: "batt_low",
@@ -479,11 +515,20 @@
   }
 
   _buildActionButton(action, entry) {
-    if (!action || typeof action !== "object" || !action.service) {
+    if (!action || typeof action !== "object") {
       return null;
     }
 
-    const service = String(action.service);
+    let service = "";
+    if (typeof action.service === "string" && action.service.trim()) {
+      service = action.service.trim();
+    } else if (typeof action.script_entity === "string" && action.script_entity.startsWith("script.")) {
+      service = action.script_entity;
+    }
+
+    if (!service) {
+      return null;
+    }
     if (!service.includes(".")) {
       return null;
     }
@@ -714,8 +759,88 @@
       template: rule.template,
       severity,
       message: typeof rule.message === "string" ? rule.message : "",
-      actions,
+      actions: this._extractRuleActions(rule, actions),
     };
+  }
+
+  _extractRuleActions(rule, existingActions) {
+    const merged = Array.isArray(existingActions) ? [...existingActions] : [];
+    const mapped = this._getScriptMappingForRule(rule.id);
+
+    let service = "";
+    if (typeof rule.action_service === "string" && rule.action_service.trim()) {
+      service = rule.action_service.trim();
+    } else if (
+      typeof rule.action_script_entity === "string" &&
+      rule.action_script_entity.startsWith("script.")
+    ) {
+      service = rule.action_script_entity;
+    } else if (
+      typeof mapped?.script_entity === "string" &&
+      mapped.script_entity.startsWith("script.")
+    ) {
+      service = mapped.script_entity;
+    } else if (
+      typeof this._config?.script_entity === "string" &&
+      this._config.script_entity.startsWith("script.")
+    ) {
+      service = this._config.script_entity;
+    } else if (
+      typeof rule.script_entity === "string" &&
+      rule.script_entity.startsWith("script.")
+    ) {
+      service = rule.script_entity;
+    }
+
+    if (service) {
+      merged.push({
+        name:
+          typeof rule.action_name === "string" && rule.action_name.trim()
+            ? rule.action_name
+            : typeof mapped?.action_name === "string" && mapped.action_name.trim()
+            ? mapped.action_name
+            : typeof this._config?.script_action_name === "string" &&
+              this._config.script_action_name.trim()
+            ? this._config.script_action_name
+            : typeof rule.script_action_name === "string" && rule.script_action_name.trim()
+            ? rule.script_action_name
+            : "Bitte beheben",
+        icon:
+          typeof rule.action_icon === "string" && rule.action_icon.trim()
+            ? rule.action_icon
+            : "mdi:refresh",
+        service,
+        confirm_text:
+          typeof rule.action_confirm_text === "string"
+            ? rule.action_confirm_text
+            : typeof mapped?.confirm_text === "string"
+            ? mapped.confirm_text
+            : typeof this._config?.script_confirm_text === "string"
+            ? this._config.script_confirm_text
+            : typeof rule.script_confirm_text === "string"
+            ? rule.script_confirm_text
+            : undefined,
+      });
+    }
+
+    return merged;
+  }
+
+  _getScriptMappingForRule(ruleId) {
+    if (!ruleId || !Array.isArray(this._config?.script_mappings)) {
+      return null;
+    }
+    const id = String(ruleId).trim();
+    if (!id) {
+      return null;
+    }
+    const found = this._config.script_mappings.find(
+      (mapping) =>
+        mapping &&
+        typeof mapping.rule_id === "string" &&
+        mapping.rule_id.trim() === id
+    );
+    return found || null;
   }
 
   _ruleMatches(rule, entityId, stateObj, stateValue) {

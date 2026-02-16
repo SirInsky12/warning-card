@@ -1,4 +1,4 @@
-# warning-card
+﻿# warning-card
 <img width="271" height="173" alt="image" src="https://github.com/user-attachments/assets/e2ec1d4c-2df2-4802-8bf4-1e8ac921dee6" />
 
 `warning-card` ist eine Home Assistant Lovelace Custom Card als Web Component.
@@ -43,6 +43,13 @@ type: custom:warning-card
 title: Warnungen
 open_modal_on_tap: true
 auto_open_on_trigger: true
+script_mappings:
+  - rule_id: batt_low
+    script_entity: script.batterie_pruefen
+    action_name: Batterie pruefen
+  - rule_id: door_open
+    script_entity: script.tuer_pruefen
+    action_name: Tuer pruefen
 rules:
   - id: batt_low
     name: Batterie kritisch
@@ -54,14 +61,6 @@ rules:
     threshold: 1
     severity: critical
     message: "{{entity}} ist bei {{value}}"
-    actions:
-      - name: Behoben?
-        icon: mdi:check-circle
-        service: warning_card.check_resolved
-        confirm_text: Wirklich behoben? Ich pruefe nach.
-      - name: Bitte beheben
-        icon: mdi:refresh
-        service: warning_card.check_resolved
 ```
 
 ## Regeltypen
@@ -84,21 +83,22 @@ Hinweise:
 
 ## Actions
 
-Jede Action nutzt `call-service` und sendet:
+Jede Action ruft einen Service auf und sendet zusaetzlich `entity_id` und `rule_id`.
 
-- `entity_id` (wenn vorhanden)
-- `rule_id`
-
-Beispiel-Service:
-
-- `warning_card.check_resolved`
+Im Visual Editor erfolgt die Zuordnung ueber `script_mappings` (rule_id -> script_entity).
 
 ## Visual Editor
 
 Die Karte verwendet `getConfigForm()` und ist im Lovelace UI bearbeitbar.
+Im Regel-Editor gibt es bei der Entitaeten-Auswahl einen Hilfetext zur Orientierung.
 
 ## Troubleshooting
 
 - Visual Editor nicht verfuegbar: Browser-Cache leeren und Ressource neu laden
+<<<<<<< HEAD
 - Alte Version wird geladen: URL mit Cache-Buster nutzen, z. B. `/local/warning-card.js?v=5`
+=======
+- Alte Version wird geladen: URL mit Cache-Buster nutzen, z. B. `/local/warning-card.js?v=11`
+>>>>>>> eca005c (Release v0.2.0: rule-script mappings in main editor)
 - Actions reagieren nicht: pruefen, ob der Service existiert und Berechtigungen passen
+
