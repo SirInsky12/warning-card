@@ -71,6 +71,9 @@ rules:
     threshold: 1
     severity: critical
 ```
+<img width="1026" height="736" alt="image" src="https://github.com/user-attachments/assets/c292571c-9841-43ec-bee7-79503442815e" />
+<img width="1017" height="730" alt="image" src="https://github.com/user-attachments/assets/5f6fcfeb-2f67-42d3-9a68-d1003483f93b" />
+
 
 ## Regeltypen
 
